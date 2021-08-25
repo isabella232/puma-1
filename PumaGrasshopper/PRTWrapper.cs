@@ -27,6 +27,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.DocObjects;
+using Rhino.Display;
 
 using Rhino.Runtime.InteropWrappers;
 using System.Linq;
@@ -255,7 +256,7 @@ namespace PumaGrasshopper
 
             string coloMap = "";
 
-            Material mat = new Material();
+            var mat = new DisplayMaterial();
             
             for (int i = 0; i < texKeysArray.Length; ++i)
             {
@@ -273,7 +274,7 @@ namespace PumaGrasshopper
                 {
                     case "diffuseMap":
                     case "colorMap":
-                        mat.SetBitmapTexture(tex);
+                        mat.SetBitmapTexture(tex, false);
                         coloMap = tex.FileReference.FullPath;
                         break;
                     case "opacityMap":
@@ -282,16 +283,16 @@ namespace PumaGrasshopper
                         {
                             tex.TextureCombineMode = TextureCombineMode.Modulate;
                             tex.TextureType = TextureType.Transparency;
-                            mat.SetTransparencyTexture(tex);
+                            mat.SetTransparencyTexture(tex, false);
                         }
                         
-                        mat.AlphaTransparency = true;
+                        //mat.AlphaTransparency = true;
                         
                         break;
                     case "bumpMap":
                         tex.TextureCombineMode = TextureCombineMode.None;
                         tex.TextureType = TextureType.Bump;
-                        mat.SetBumpTexture(tex);
+                        mat.SetBumpTexture(tex, false);
                         break;
                     default:
                         break;
@@ -307,29 +308,30 @@ namespace PumaGrasshopper
 
             if(diffuseColor.Length == 3)
             {
-                mat.DiffuseColor = Color.FromArgb(diffuseColor[0], diffuseColor[1], diffuseColor[2]);
+                mat.Diffuse = Color.FromArgb(diffuseColor[0], diffuseColor[1], diffuseColor[2]);
             }
 
             if(ambientColor.Length == 3)
             {
-                mat.AmbientColor = Color.FromArgb(ambientColor[0], ambientColor[1], ambientColor[2]);
+                mat.Ambient = Color.FromArgb(ambientColor[0], ambientColor[1], ambientColor[2]);
             }
 
             if(specularColor.Length == 3)
             {
-                mat.SpecularColor = Color.FromArgb(specularColor[0], specularColor[1], specularColor[2]);
+                mat.Specular = Color.FromArgb(specularColor[0], specularColor[1], specularColor[2]);
             }
 
             mat.Transparency = 1.0 - opacity;
             mat.Shine = shininess;
+            mat.IsTwoSided = true;
 
-            mat.FresnelReflections = true;
+            //mat.FresnelReflections = true;
 
-            mat.CommitChanges();
+            //mat.CommitChanges();
 
-            var renderMat = Rhino.Render.RenderMaterial.CreateBasicMaterial(mat);
+           // var rhinoMat = new Rhino.Display.DisplayMaterial(mat);
 
-            return new GH_Material(renderMat);
+            return new GH_Material(mat);
         }
 
         public static List<GH_Material> GetMaterialsOfMesh(int initialShapeIndex)
